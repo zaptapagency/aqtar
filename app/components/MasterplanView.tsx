@@ -34,7 +34,7 @@ export default function MasterplanView({ lang, onZoneClick }: MasterplanViewProp
       {/* Masterplan image */}
       <div className="relative w-full h-full">
         <Image
-          src="/images/alzumuruda-masterplan.jpg"
+          src="/images/77.31eab707e81769ce93c2.jpg"
           alt="ALAQTAR Masterplan"
           fill
           className="object-cover"

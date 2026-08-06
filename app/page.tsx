@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import Splash from './components/Splash';
-import { View } from './components/Menu';
+import Menu, { View } from './components/Menu';
 import TopLogo from './components/TopLogo';
 import MasterplanView from './components/MasterplanView';
 import HouseDetailPanel from './components/HouseDetailPanel';
@@ -72,6 +72,14 @@ export default function Home() {
             )}
           </div>
 
+          <Menu
+            currentView={view}
+            currentZone={zone}
+            lang={lang}
+            onNavigate={navigate}
+            onLangToggle={() => setLang(l => l === 'en' ? 'ar' : 'en')}
+            onBack={goBack}
+          />
         </>
       )}
     </main>
