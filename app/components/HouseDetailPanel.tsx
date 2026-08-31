@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { PlotData } from './ZoneView';
 
 interface HouseDetailPanelProps {
@@ -22,10 +21,6 @@ const SALES_WHATSAPP =
   process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '966920011058';
 
 export default function HouseDetailPanel({ plot, lang, onClose }: HouseDetailPanelProps) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-
   if (!plot) return null;
 
   const dir = (key: string) => DIRECTION_LABEL[key]?.[lang] ?? key.toUpperCase();
@@ -39,20 +34,12 @@ export default function HouseDetailPanel({ plot, lang, onClose }: HouseDetailPan
           `رقم القطعة: ${plot.plot_number}`,
           `البلوك: ${plot.block_number}`,
           `المساحة: ${plot.unit_size} م²`,
-          '',
-          `الاسم: ${name || '-'}`,
-          `البريد الإلكتروني: ${email || '-'}`,
-          `الهاتف: ${phone ? '+966 ' + phone : '-'}`,
         ]
       : [
           "Hello, I'm interested in this plot in the ALAQTAR master plan:",
           `Plot number: ${plot.plot_number}`,
           `Block: ${plot.block_number}`,
           `Unit size: ${plot.unit_size} m²`,
-          '',
-          `Name: ${name || '-'}`,
-          `Email: ${email || '-'}`,
-          `Phone: ${phone ? '+966 ' + phone : '-'}`,
         ];
     const url = `https://wa.me/${SALES_WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`;
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -111,70 +98,25 @@ export default function HouseDetailPanel({ plot, lang, onClose }: HouseDetailPan
           {/* Vertical divider */}
           <div className="w-px bg-white/10 my-6" />
 
-          {/* Right: contact form */}
-          <div className="flex-1 px-8 py-6 flex flex-col gap-4">
-            {/* Full name */}
-            <div>
-              <label className="text-gray-400 text-xs block mb-1.5">
-                {isAr ? 'الاسم الكامل' : 'Full name'}
-              </label>
-              <div className="flex items-center border border-white/15 rounded-full px-4 py-2.5 gap-2.5">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round">
-                  <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                </svg>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="flex-1 bg-transparent text-white text-sm outline-none"
-                />
-              </div>
-            </div>
+          {/* Right: enquire via WhatsApp (no manual fields — the customer's
+              WhatsApp identity carries their name & number automatically) */}
+          <div className="flex-1 px-8 py-6 flex flex-col justify-center gap-5">
+            <p className="text-gray-300 text-sm leading-relaxed">
+              {isAr
+                ? 'للاستفسار أو الحجز، تواصل معنا مباشرة عبر واتساب وسيتم إرفاق تفاصيل هذه القطعة تلقائيًا.'
+                : 'To enquire or reserve, contact us directly on WhatsApp — this plot’s details are attached automatically.'}
+            </p>
 
-            {/* Email */}
-            <div>
-              <label className="text-gray-400 text-xs block mb-1.5">
-                {isAr ? 'البريد الإلكتروني' : 'Email'}
-              </label>
-              <div className="flex items-center border border-white/15 rounded-full px-4 py-2.5 gap-2.5">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round">
-                  <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m2 7 10 7 10-7" />
-                </svg>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 bg-transparent text-white text-sm outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="text-gray-400 text-xs block mb-1.5">
-                {isAr ? 'رقم الهاتف' : 'Phone number'}
-              </label>
-              <div className="flex border border-white/15 rounded-full overflow-hidden">
-                <div className="flex items-center gap-1.5 px-4 py-2.5 border-r border-white/15 text-white text-sm whitespace-nowrap">
-                  <span>🇸🇦</span>
-                  <span>+966</span>
-                </div>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="flex-1 bg-transparent text-white text-sm px-3 outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Send — opens WhatsApp to the sales number with the plot + contact details */}
+            {/* Send — opens WhatsApp to the sales number with the plot details */}
             <button
               onClick={handleSend}
-              className="w-full py-3 rounded-full text-white text-sm font-semibold tracking-[0.18em] uppercase mt-auto transition-opacity hover:opacity-90"
-              style={{ backgroundColor: '#C4856A' }}
+              className="w-full py-3 rounded-full text-white text-sm font-semibold tracking-[0.18em] uppercase transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
+              style={{ backgroundColor: '#25D366' }}
             >
-              {isAr ? 'إرسال عبر واتساب' : 'SEND VIA WHATSAPP'}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.47 14.38c-.29-.15-1.7-.84-1.96-.93-.26-.1-.45-.15-.64.14-.19.29-.74.93-.9 1.12-.17.19-.33.22-.62.07-.29-.15-1.22-.45-2.33-1.44-.86-.77-1.44-1.72-1.61-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.44-.51.15-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.15-.64-1.55-.88-2.12-.23-.55-.47-.48-.64-.49-.17-.01-.36-.01-.55-.01-.19 0-.51.07-.77.36-.26.29-1.01.99-1.01 2.41 0 1.42 1.03 2.79 1.18 2.98.15.19 2.03 3.1 4.92 4.35.69.3 1.22.47 1.64.6.69.22 1.32.19 1.81.12.55-.08 1.7-.69 1.94-1.36.24-.67.24-1.24.17-1.36-.07-.12-.26-.19-.55-.34zM12.05 21.5h-.01a9.4 9.4 0 01-4.79-1.31l-.34-.2-3.56.93.95-3.47-.22-.36a9.38 9.38 0 01-1.44-5.01c0-5.19 4.23-9.42 9.43-9.42 2.52 0 4.88.98 6.66 2.76a9.35 9.35 0 012.75 6.66c0 5.2-4.23 9.42-9.42 9.42zm8.02-17.44A11.32 11.32 0 0012.05.65C5.84.65.8 5.69.8 11.9c0 2 .52 3.94 1.51 5.66L.71 23.35l5.93-1.56a11.27 11.27 0 005.4 1.38h.01c6.21 0 11.25-5.04 11.25-11.25 0-3.01-1.17-5.83-3.23-7.86z"/>
+              </svg>
+              {isAr ? 'تواصل عبر واتساب' : 'CONTACT VIA WHATSAPP'}
             </button>
           </div>
         </div>

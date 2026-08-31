@@ -111,13 +111,15 @@ function ZoneCanvas({
               <g key={poly.plotIndex}>
                 <path
                   d={poly.path}
-                  fill={isHov ? 'rgba(255,255,255,0.18)' : 'none'}
+                  // Transparent fill (not "none") so the whole plot interior —
+                  // not just the thin outline — is hoverable and clickable.
+                  fill={isHov ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.01)'}
                   stroke={isHov ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)'}
                   strokeWidth={isHov ? 1 : 0.65}
                   strokeLinecap="butt"
                   strokeLinejoin="bevel"
                   opacity={isHov ? 1 : 0.85}
-                  style={{ transition: 'all 0.15s' }}
+                  style={{ transition: 'all 0.15s', pointerEvents: 'all' }}
                   onMouseEnter={() => setHovered(poly.plotIndex)}
                   onMouseLeave={() => setHovered(null)}
                   onClick={() => plot && onPlotSelect(plot)}
