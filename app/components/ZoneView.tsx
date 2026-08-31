@@ -45,17 +45,6 @@ const ZONE_IMAGES: Record<number, string> = {
   5: '/images/temp.5b5a8efbdcba5eab8380.jpg',
 };
 
-const STATUS_FILL: Record<string, string> = {
-  available:     'rgba(255,255,255,0)',
-  sold:          'rgba(255,255,255,0)',
-  not_available: 'rgba(255,255,255,0)',
-};
-const STATUS_HOVER: Record<string, string> = {
-  available:     'rgba(255,255,255,0.25)',
-  sold:          'rgba(255,255,255,0.25)',
-  not_available: 'rgba(255,255,255,0.25)',
-};
-
 // ------------------------------------------------------------------
 // Inner component — lives inside TransformWrapper, can use its hooks
 // ------------------------------------------------------------------
@@ -108,7 +97,7 @@ function ZoneCanvas({
           priority
         />
 
-        {/* SVG plot overlay */}
+        {/* SVG plot overlay — neutral outlines, clickable for details */}
         <svg
           viewBox="0 0 1920 1080"
           width="1920"
@@ -117,21 +106,23 @@ function ZoneCanvas({
         >
           {polygons.map(poly => {
             const plot = getPlot(poly.plotIndex);
-            const status = plot?.status ?? 'not_available';
             const isHov = hovered === poly.plotIndex;
             return (
               <g key={poly.plotIndex}>
                 <path
                   d={poly.path}
-                  fill={isHov ? STATUS_HOVER[status] : STATUS_FILL[status]}
-                  stroke={isHov ? 'white' : 'rgba(255,255,255,0.35)'}
-                  strokeWidth={isHov ? 1.5 : 0.7}
-                  style={{ transition: 'fill 0.12s' }}
+                  fill={isHov ? 'rgba(255,255,255,0.18)' : 'none'}
+                  stroke={isHov ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)'}
+                  strokeWidth={isHov ? 1 : 0.65}
+                  strokeLinecap="butt"
+                  strokeLinejoin="bevel"
+                  opacity={isHov ? 1 : 0.85}
+                  style={{ transition: 'all 0.15s' }}
                   onMouseEnter={() => setHovered(poly.plotIndex)}
                   onMouseLeave={() => setHovered(null)}
                   onClick={() => plot && onPlotSelect(plot)}
                 />
-                {showNumbers && plot && <PlotLabel path={poly.path} plotNumber={plot.plot_number} status={status} />}
+                {showNumbers && plot && <PlotLabel path={poly.path} plotNumber={plot.plot_number} />}
               </g>
             );
           })}
@@ -218,7 +209,7 @@ export default function ZoneView({ zoneNumber, lang, onPlotSelect }: ZoneViewPro
 }
 
 // Centroid label — uses plot_number (unique per polygon, matches live site)
-function PlotLabel({ path, plotNumber, status }: { path: string; plotNumber: number; status: string }) {
+function PlotLabel({ path, plotNumber }: { path: string; plotNumber: number }) {
   const pts = [...path.matchAll(/[ML]\s*([\d.]+)\s+([\d.]+)/g)].map(m => ({
     x: parseFloat(m[1]), y: parseFloat(m[2]),
   }));
@@ -231,7 +222,7 @@ function PlotLabel({ path, plotNumber, status }: { path: string; plotNumber: num
       textAnchor="middle"
       fontSize="7"
       fontWeight="bold"
-      fill={status === 'not_available' ? '#ddd' : 'white'}
+      fill="white"
       paintOrder="stroke"
       stroke="rgba(0,0,0,0.7)"
       strokeWidth="1.8"

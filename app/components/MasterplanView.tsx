@@ -1,14 +1,13 @@
 'use client';
 
 import Image from 'next/image';
+import { TransformWrapper, TransformComponent, useControls } from 'react-zoom-pan-pinch';
 
 interface Zone {
   id: number;
   label: { en: string; ar: string };
-  // Position on masterplan image as % of container
   x: number;
   y: number;
-  // VR 360 badge positions
   vr360?: { x: number; y: number };
 }
 
@@ -20,91 +19,142 @@ const ZONES: Zone[] = [
   { id: 5, label: { en: 'ZONE 5', ar: 'المنطقة 5' }, x: 47, y: 21 },
 ];
 
-// Central VR 360 badge
-const CENTRAL_VR = { x: 48, y: 41 };
-
 interface MasterplanViewProps {
   lang: 'en' | 'ar';
   onZoneClick: (zone: number) => void;
 }
 
-export default function MasterplanView({ lang, onZoneClick }: MasterplanViewProps) {
+function MasterplanContent({
+  lang,
+  onZoneClick,
+}: {
+  lang: 'en' | 'ar';
+  onZoneClick: (zone: number) => void;
+}) {
+  const { zoomIn, zoomOut, resetTransform } = useControls();
+
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#D4C5B5]">
-      {/* Masterplan image */}
-      <div className="relative w-full h-full">
+    <>
+      {/* Zoom Controls */}
+      <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
+        <button
+          onClick={() => zoomIn()}
+          className="w-10 h-10 rounded-full bg-[#C4856A] hover:bg-[#B8735E] text-white font-bold flex items-center justify-center transition-all shadow-lg text-lg"
+          title="Zoom in"
+        >
+          +
+        </button>
+        <button
+          onClick={() => zoomOut()}
+          className="w-10 h-10 rounded-full bg-[#C4856A] hover:bg-[#B8735E] text-white font-bold flex items-center justify-center transition-all shadow-lg text-lg"
+          title="Zoom out"
+        >
+          −
+        </button>
+        <button
+          onClick={() => resetTransform()}
+          className="w-10 h-10 rounded-full bg-[#888] hover:bg-[#777] text-white font-bold flex items-center justify-center transition-all shadow-lg text-sm"
+          title="Reset view"
+        >
+          ⊙
+        </button>
+      </div>
+
+      <TransformComponent
+        wrapperStyle={{ width: '100%', height: '100%' }}
+        contentStyle={{ width: '1920px', height: '1080px', position: 'relative' }}
+      >
         <Image
           src="/images/77.31eab707e81769ce93c2.jpg"
           alt="ALAQTAR Masterplan"
-          fill
-          className="object-cover"
+          width={1920}
+          height={1080}
+          style={{ position: 'absolute', top: 0, left: 0, width: '1920px', height: '1080px' }}
           priority
         />
 
-        {/* Overlay layer for zones */}
-        <div className="absolute inset-0">
-          {/* Zone labels + orbit markers */}
+        {/* Zone markers */}
+        <svg
+          viewBox="0 0 1920 1080"
+          width="1920"
+          height="1080"
+          style={{ position: 'absolute', top: 0, left: 0 }}
+          xmlns="http://www.w3.org/2000/svg"
+        >
           {ZONES.map((zone) => (
-            <div key={zone.id}>
-              {/* Zone label badge */}
-              <div
-                className="absolute flex items-center gap-1.5 cursor-pointer group"
-                style={{ left: `${zone.x}%`, top: `${zone.y}%`, transform: 'translate(-50%, -50%)' }}
-                onClick={() => onZoneClick(zone.id)}
+            <g key={zone.id} style={{ cursor: 'pointer' }} onClick={() => onZoneClick(zone.id)}>
+              {/* Zone marker circle */}
+              <circle
+                cx={(zone.x / 100) * 1920}
+                cy={(zone.y / 100) * 1080}
+                r="40"
+                fill="#C4856A"
+                opacity="0.8"
+                style={{ transition: 'opacity 0.3s' }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.8')}
+              />
+
+              {/* Zone label */}
+              <text
+                x={(zone.x / 100) * 1920}
+                y={(zone.y / 100) * 1080}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="white"
+                fontSize="14"
+                fontWeight="bold"
+                fontFamily="Arial, sans-serif"
+                style={{ pointerEvents: 'none', userSelect: 'none' }}
               >
-                {/* Orbit ring marker */}
-                <div
-                  className="w-10 h-10 rounded-full border-2 border-white/60 flex items-center justify-center group-hover:scale-110 transition-transform"
-                  style={{
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)',
-                    boxShadow: '0 0 0 4px rgba(255,255,255,0.1)',
-                  }}
-                >
-                  <div className="w-2 h-2 rounded-full bg-white/80" />
-                </div>
-                {/* Label */}
-                <div
-                  className="px-3 py-1 rounded-full text-xs font-semibold tracking-wider text-white group-hover:opacity-90 transition-opacity"
-                  style={{ backgroundColor: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)' }}
-                >
-                  {zone.label[lang]}
-                </div>
-              </div>
+                {lang === 'ar' ? zone.label.ar : zone.label.en}
+              </text>
 
-              {/* VR 360 badge */}
+              {/* VR 360 badge if available */}
               {zone.vr360 && (
-                <div
-                  className="absolute cursor-pointer group"
-                  style={{ left: `${zone.vr360.x}%`, top: `${zone.vr360.y}%`, transform: 'translate(-50%, -50%)' }}
-                  onClick={() => onZoneClick(zone.id)}
-                >
-                  <div
-                    className="w-12 h-12 rounded-full flex flex-col items-center justify-center text-white font-bold text-[10px] leading-tight group-hover:scale-110 transition-transform"
-                    style={{ backgroundColor: '#C4856A', border: '2px solid rgba(255,255,255,0.5)' }}
+                <g>
+                  <circle
+                    cx={(zone.vr360.x / 100) * 1920}
+                    cy={(zone.vr360.y / 100) * 1080}
+                    r="20"
+                    fill="#ef4444"
+                    opacity="0.9"
+                  />
+                  <text
+                    x={(zone.vr360.x / 100) * 1920}
+                    y={(zone.vr360.y / 100) * 1080}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill="white"
+                    fontSize="10"
+                    fontWeight="bold"
+                    fontFamily="Arial, sans-serif"
+                    style={{ pointerEvents: 'none', userSelect: 'none' }}
                   >
-                    <span>VR</span>
-                    <span>360</span>
-                  </div>
-                </div>
+                    360°
+                  </text>
+                </g>
               )}
-            </div>
+            </g>
           ))}
+        </svg>
+      </TransformComponent>
+    </>
+  );
+}
 
-          {/* Central VR 360 */}
-          <div
-            className="absolute cursor-pointer group"
-            style={{ left: `${CENTRAL_VR.x}%`, top: `${CENTRAL_VR.y}%`, transform: 'translate(-50%, -50%)' }}
-          >
-            <div
-              className="w-14 h-14 rounded-full flex flex-col items-center justify-center text-white font-bold text-xs leading-tight group-hover:scale-110 transition-transform"
-              style={{ backgroundColor: '#C4856A', border: '2px solid rgba(255,255,255,0.6)', boxShadow: '0 2px 12px rgba(0,0,0,0.3)' }}
-            >
-              <span>VR</span>
-              <span>360</span>
-            </div>
-          </div>
-        </div>
-      </div>
+export default function MasterplanView({ lang, onZoneClick }: MasterplanViewProps) {
+  return (
+    <div className="relative w-full h-full overflow-hidden bg-[#D4C5B5]">
+      <TransformWrapper
+        initialScale={1}
+        minScale={0.5}
+        maxScale={4}
+        wheel={{ step: 0.2 }}
+        pinch={{ step: 0.2 }}
+      >
+        <MasterplanContent lang={lang} onZoneClick={onZoneClick} />
+      </TransformWrapper>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { PlotData } from './ZoneView';
 
 interface HouseDetailPanelProps {
@@ -15,11 +16,47 @@ const DIRECTION_LABEL: Record<string, { en: string; ar: string }> = {
   western:  { en: 'WESTERN',  ar: 'غربية'  },
 };
 
+// Sales WhatsApp number in international format WITHOUT the leading "+".
+// Override at build/deploy time via NEXT_PUBLIC_WHATSAPP_NUMBER.
+const SALES_WHATSAPP =
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '966920011058';
+
 export default function HouseDetailPanel({ plot, lang, onClose }: HouseDetailPanelProps) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+
   if (!plot) return null;
 
   const dir = (key: string) => DIRECTION_LABEL[key]?.[lang] ?? key.toUpperCase();
   const isAr = lang === 'ar';
+
+  const handleSend = () => {
+    if (!plot) return;
+    const lines = isAr
+      ? [
+          'مرحبًا، أنا مهتم بهذه القطعة في مخطط الأقطار:',
+          `رقم القطعة: ${plot.plot_number}`,
+          `البلوك: ${plot.block_number}`,
+          `المساحة: ${plot.unit_size} م²`,
+          '',
+          `الاسم: ${name || '-'}`,
+          `البريد الإلكتروني: ${email || '-'}`,
+          `الهاتف: ${phone ? '+966 ' + phone : '-'}`,
+        ]
+      : [
+          "Hello, I'm interested in this plot in the ALAQTAR master plan:",
+          `Plot number: ${plot.plot_number}`,
+          `Block: ${plot.block_number}`,
+          `Unit size: ${plot.unit_size} m²`,
+          '',
+          `Name: ${name || '-'}`,
+          `Email: ${email || '-'}`,
+          `Phone: ${phone ? '+966 ' + phone : '-'}`,
+        ];
+    const url = `https://wa.me/${SALES_WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div
@@ -85,7 +122,12 @@ export default function HouseDetailPanel({ plot, lang, onClose }: HouseDetailPan
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round">
                   <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                 </svg>
-                <input type="text" className="flex-1 bg-transparent text-white text-sm outline-none" />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="flex-1 bg-transparent text-white text-sm outline-none"
+                />
               </div>
             </div>
 
@@ -98,7 +140,12 @@ export default function HouseDetailPanel({ plot, lang, onClose }: HouseDetailPan
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" strokeLinecap="round">
                   <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m2 7 10 7 10-7" />
                 </svg>
-                <input type="email" className="flex-1 bg-transparent text-white text-sm outline-none" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 bg-transparent text-white text-sm outline-none"
+                />
               </div>
             </div>
 
@@ -112,16 +159,22 @@ export default function HouseDetailPanel({ plot, lang, onClose }: HouseDetailPan
                   <span>🇸🇦</span>
                   <span>+966</span>
                 </div>
-                <input type="tel" className="flex-1 bg-transparent text-white text-sm px-3 outline-none" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="flex-1 bg-transparent text-white text-sm px-3 outline-none"
+                />
               </div>
             </div>
 
-            {/* Send */}
+            {/* Send — opens WhatsApp to the sales number with the plot + contact details */}
             <button
-              className="w-full py-3 rounded-full text-white text-sm font-semibold tracking-[0.18em] uppercase mt-auto"
+              onClick={handleSend}
+              className="w-full py-3 rounded-full text-white text-sm font-semibold tracking-[0.18em] uppercase mt-auto transition-opacity hover:opacity-90"
               style={{ backgroundColor: '#C4856A' }}
             >
-              {isAr ? 'إرسال' : 'SEND'}
+              {isAr ? 'إرسال عبر واتساب' : 'SEND VIA WHATSAPP'}
             </button>
           </div>
         </div>

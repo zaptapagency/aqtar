@@ -7,6 +7,19 @@ export async function GET(req: NextRequest) {
   if (!zone) return NextResponse.json({ error: 'zone required' }, { status: 400 });
 
   try {
+    // If zone is 'all', return all plot polygons
+    if (zone === 'all') {
+      // Plot polygons reprojected into the masterplan image's camera space
+      // (built offline via per-zone homographies from the zone-view frames).
+      const mpPath = join(process.cwd(), 'data', 'masterplan-plot-polygons.json');
+      if (existsSync(mpPath)) {
+        const data = JSON.parse(readFileSync(mpPath, 'utf-8'));
+        const all = Object.values(data).flat();
+        return NextResponse.json(all);
+      }
+      return NextResponse.json([]);
+    }
+
     const filePath = join(process.cwd(), 'data', 'zones-polygons.json');
     if (!existsSync(filePath)) {
       // Fall back to plot-polygons.json for zone 1
