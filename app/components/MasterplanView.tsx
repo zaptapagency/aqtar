@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { TransformWrapper, TransformComponent, useControls } from 'react-zoom-pan-pinch';
 
@@ -144,12 +145,33 @@ function MasterplanContent({
 }
 
 export default function MasterplanView({ lang, onZoneClick }: MasterplanViewProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [minScale, setMinScale] = useState(0.5);
+
+  // "Cover" scale: the smallest zoom at which the 1920x1080 image still fills
+  // the visible frame. Clamping minScale to this stops zoom-out from shrinking
+  // the plan below the window and exposing the empty background.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => {
+      const coverScale = Math.max(el.clientWidth / 1920, el.clientHeight / 1080);
+      setMinScale(coverScale);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#D4C5B5]">
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-[#D4C5B5]">
       <TransformWrapper
-        initialScale={1}
-        minScale={0.5}
+        key={minScale}
+        initialScale={Math.max(1, minScale)}
+        minScale={minScale}
         maxScale={4}
+        centerOnInit
         wheel={{ step: 0.2 }}
         pinch={{ step: 0.2 }}
       >
